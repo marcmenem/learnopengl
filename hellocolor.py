@@ -29,10 +29,14 @@ vertexShaderSource = """
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aColor;
 out vec4 vertexColor; // specify a color output to the fragment shader
+uniform float scaleUp;
 
 void main(){
-    gl_Position = vec4(aPos, 1.0); // see how we directly give a vec3 to vec4's constructor
-    vertexColor = vec4(aColor, 1.0);  // set the output variable to a dark-red color
+    gl_Position = vec4(scaleUp * aPos.xy, aPos.z, 1.0);
+    //gl_Position = vec4(aPos, 1.0); // see how we directly give a vec3 to vec4's constructor
+    //gl_Position = vec4(aPos, 1.0); // see how we directly give a vec3 to vec4's constructor
+    // vertexColor = vec4(aColor, 1.0);  // set the output variable to a dark-red color
+    vertexColor = vec4(aColor.rgb, 1.0);  // set the output variable to a dark-red color
 }
 """
 
@@ -43,8 +47,8 @@ in vec4 vertexColor; // the input variable from the vertex shader (same name and
 uniform vec4 extraColor; // we set this variable in the OpenGL code.
 
 void main(){
-    if ( vertexColor.y > 0.5 ){ //} == vec4(1.0, 1.0, 1.0, 1.0) ){
-        FragColor = extraColor;
+    if ( vertexColor.g > 0.5 ){
+        FragColor = abs(extraColor) * vertexColor;
     } else {
         FragColor = vertexColor;
     }
@@ -151,6 +155,10 @@ while not glfw.window_should_close(window):
     # print( greenValue )
     vertexColorLocation = glGetUniformLocation(shaderProgram, "extraColor");
     glUniform4f(vertexColorLocation, 0.0, greenValue, 0.0, 1.0);
+
+    scaleUp = abs( greenValue )
+    scaleUpLocation = glGetUniformLocation(shaderProgram, "scaleUp");
+    glUniform1f(scaleUpLocation, scaleUp)
 
     # render
     glClear(GL_COLOR_BUFFER_BIT)
