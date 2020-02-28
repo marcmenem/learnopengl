@@ -4,7 +4,9 @@ import glfw
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
+import math
 
+import ctypes
 
 def framebuffer_size_callback(window, width, height):
     # make sure the viewport matches the new window dimensions; note that width and
@@ -25,17 +27,27 @@ height = 600
 vertexShaderSource = """
 #version 330 core
 layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+out vec4 vertexColor; // specify a color output to the fragment shader
 
 void main(){
-    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+    gl_Position = vec4(aPos, 1.0); // see how we directly give a vec3 to vec4's constructor
+    vertexColor = vec4(aColor, 1.0);  // set the output variable to a dark-red color
 }
 """
+
 fragmentShaderSource = """
 #version 330 core
 out vec4 FragColor;
+in vec4 vertexColor; // the input variable from the vertex shader (same name and same type)
+uniform vec4 extraColor; // we set this variable in the OpenGL code.
 
 void main(){
-    FragColor = vec4(0.0f, 0.5f, 0.2f, 1.0f);
+    if ( vertexColor.y > 0.5 ){ //} == vec4(1.0, 1.0, 1.0, 1.0) ){
+        FragColor = extraColor;
+    } else {
+        FragColor = vertexColor;
+    }
 }
 """
 
@@ -56,54 +68,21 @@ if not window:
 glfw.make_context_current(window)
 glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
-# build and compile our shader program
-# ------------------------------------
-# vertex shader
-vertexShader = glCreateShader(GL_VERTEX_SHADER)
-glShaderSource(vertexShader, [vertexShaderSource], None)
-glCompileShader(vertexShader)
 
-# check for shader compile errors
-success = glGetShaderiv(vertexShader, GL_COMPILE_STATUS)
-if not success:
-    infoLog = glGetShaderInfoLog(vertexShader)
-    print( "ERROR::SHADER::VERTEX::COMPILATION_FAILED", infoLog)
+import myshader
+shaderProgram = myshader.linkShaders(vertexShaderSource, fragmentShaderSource)
 
-#  fragment shader
-fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
-glShaderSource(fragmentShader, [fragmentShaderSource], None)
-glCompileShader(fragmentShader)
 
-# check for shader compile errors
-success = glGetShaderiv(fragmentShader, GL_COMPILE_STATUS)
-if not success:
-    infoLog = glGetShaderInfoLog(fragmentShader)
-    print( "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", infoLog)
-
-# link shaders
-shaderProgram = glCreateProgram()
-glAttachShader(shaderProgram, vertexShader)
-glAttachShader(shaderProgram, fragmentShader)
-glLinkProgram(shaderProgram)
-
-# check for linking errors
-success = glGetProgramiv(shaderProgram, GL_LINK_STATUS)
-if not success:
-    infoLog = glGetProgramInfoLog(shaderProgram)
-    print( "ERROR::SHADER::PROGRAM::LINKING_FAILED", infoLog)
-
-glDeleteShader(vertexShader)
-glDeleteShader(fragmentShader)
 
 # set up vertex data (and buffer(s)) and configure vertex attributes
 # ------------------------------------------------------------------
 
 import numpy as np
 vertices = np.array([
-         0.5,  0.5, 0.0,  # top right
-         0.5, -0.5, 0.0,  # bottom right
-        -0.5, -0.5, 0.0,  # bottom left
-        -0.5,  0.5, 0.0   # top left
+         0.5,  0.5, 0.0,       1.0, 0.0, 0.0,   # top right
+         0.5, -0.5, 0.0,       0.0, 1.0, 0.0,  # bottom right
+        -0.5, -0.5, 0.0,       0.0, 0.0, 1.0,  # bottom left
+        -0.5,  0.5, 0.0,       1.0, 1.0, 1.0  # top left
 ], dtype=np.float32)
 
 indices = np.array([  # note that we start from 0!
@@ -131,7 +110,12 @@ glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
 ## position of the attrib array, must match the shader
 location = 0
-glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 3*4, None) #3 * 4, 0)
+glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6*4, None) #3 * 4, 0)
+glEnableVertexAttribArray(location)
+
+## position of the attrib array, must match the shader
+location = 1
+glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6*4, ctypes.c_void_p(3*4)) #3 * 4, 0)
 glEnableVertexAttribArray(location)
 
 # note that this is allowed, the call to glVertexAttribPointer registered VBO as the
@@ -148,7 +132,7 @@ glEnableVertexAttribArray(location)
 glBindVertexArray(0)
 
 # uncomment this call to draw in wireframe polygons.
-glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+# glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
 # render loop
 # -----------
@@ -161,6 +145,13 @@ while not glfw.window_should_close(window):
     # input
     processInput(window)
 
+
+    timeValue = glfw.get_time()*1.0
+    greenValue = (math.sin(timeValue) / 2.0) + 0.5
+    # print( greenValue )
+    vertexColorLocation = glGetUniformLocation(shaderProgram, "extraColor");
+    glUniform4f(vertexColorLocation, 0.0, greenValue, 0.0, 1.0);
+
     # render
     glClear(GL_COLOR_BUFFER_BIT)
     # draw our first triangle
@@ -170,7 +161,7 @@ while not glfw.window_should_close(window):
     # glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     # -------------------------------------------------------------------------------
     glfw.swap_buffers(window)
-    glfw.wait_events()
+    glfw.poll_events()
 
 glBindVertexArray(0) # no need to unbind it every time
 
