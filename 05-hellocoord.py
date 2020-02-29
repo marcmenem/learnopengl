@@ -17,22 +17,10 @@ def framebuffer_size_callback(window, width, height):
 # process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 # ---------------------------------------------------------------------------------------------------------
 
-rotate = True
-rpressed = False
-
 def processInput(window):
-    global rotate, rpressed
-
     if glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS:
         glfw.set_window_should_close(window, True)
 
-    if glfw.get_key(window, glfw.KEY_R) == glfw.PRESS:
-        rpressed = True
-
-    if rpressed and glfw.get_key(window, glfw.KEY_R) == glfw.RELEASE:
-        rpressed = False
-        rotate = not rotate
-        # print("rotate: ", rotate)
 
 
 width = 800
@@ -61,68 +49,12 @@ import myshader
 shaders = myshader.shader( "hellocoord.vert", "hellocoord.frag")
 shaders.linkShaders()
 
-## Textures
-import PIL.Image
-im = PIL.Image.open('wall.jpg')
+# ## Textures
+import mytexture
+t1 = mytexture.texture('wall.jpg', GL_TEXTURE0)
+# t2 = mytexture.texture('awesomeface.png', GL_TEXTURE1)
 
-imw, imh = im.size
-imd = im.convert('RGB').transpose(PIL.Image.FLIP_TOP_BOTTOM).tobytes()
-        # return Texture2D(
-        #     img.size, precision,
-        #     img.convert('RGBA').transpose(PIL.Image.FLIP_TOP_BOTTOM).tobytes(),
-        #     GL_UNSIGNED_BYTE, 4
-        # )
-
-texture = glGenTextures(1)
-
-glActiveTexture(GL_TEXTURE0) # not necessary if we only have 1 texture
-glBindTexture(GL_TEXTURE_2D, texture)
-
-# set the texture wrapping/filtering options (on the currently bound texture object)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-
-# print( imw, imh, len(imd))
-glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imw, imh, 0, GL_RGB, GL_UNSIGNED_BYTE, imd)
-
-del im
-del imd
-glGenerateMipmap(GL_TEXTURE_2D)
-
-
-
-
-
-im = PIL.Image.open('awesomeface.png')
-
-imw, imh = im.size
-imd = im.convert('RGB').transpose(PIL.Image.FLIP_TOP_BOTTOM).tobytes()
-        # return Texture2D(
-        #     img.size, precision,
-        #     img.convert('RGBA').transpose(PIL.Image.FLIP_TOP_BOTTOM).tobytes(),
-        #     GL_UNSIGNED_BYTE, 4
-        # )
-
-texture2 = glGenTextures(1)
-glActiveTexture(GL_TEXTURE1)
-glBindTexture(GL_TEXTURE_2D, texture2)
-
-# set the texture wrapping/filtering options (on the currently bound texture object)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-
-# print( imw, imh, len(imd))
-glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imw, imh, 0, GL_RGB, GL_UNSIGNED_BYTE, imd)
-
-del im
-del imd
-glGenerateMipmap(GL_TEXTURE_2D)
-
-
+#
 
 # set up vertex data (and buffer(s)) and configure vertex attributes
 # ------------------------------------------------------------------
