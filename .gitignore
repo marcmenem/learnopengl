@@ -1,6 +1,7 @@
 .DS_Store
 *.pyc
 hellotriangle
+hellotexture
 .hg
 .hgignore
 Hello Triangle.ipynb
