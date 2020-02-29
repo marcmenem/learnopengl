@@ -41,21 +41,50 @@ if not window:
 glfw.make_context_current(window)
 glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
+
 ## Load, compile, link shaders
 import myshader
-shaders = myshader.shader( "hellocolor.vert", "hellocolor.frag")
+shaders = myshader.shader( "hellotexture.vert", "hellotexture.frag")
 shaders.linkShaders()
 
+## Textures
+import PIL.Image
+im = PIL.Image.open('wall.jpg')
+
+imw, imh = im.size
+imd = im.convert('RGB').transpose(PIL.Image.FLIP_TOP_BOTTOM).tobytes()
+        # return Texture2D(
+        #     img.size, precision,
+        #     img.convert('RGBA').transpose(PIL.Image.FLIP_TOP_BOTTOM).tobytes(),
+        #     GL_UNSIGNED_BYTE, 4
+        # )
+
+texture = glGenTextures(1)
+glBindTexture(GL_TEXTURE_2D, texture)
+
+# set the texture wrapping/filtering options (on the currently bound texture object)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+# print( imw, imh, len(imd))
+glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imw, imh, 0, GL_RGB, GL_UNSIGNED_BYTE, imd)
+
+del im
+del imd
+glGenerateMipmap(GL_TEXTURE_2D)
 
 # set up vertex data (and buffer(s)) and configure vertex attributes
 # ------------------------------------------------------------------
 
 import numpy as np
 vertices = np.array([
-         0.5,  0.5, 0.0,       1.0, 0.0, 0.0,   # top right
-         0.5, -0.5, 0.0,       0.0, 1.0, 0.0,  # bottom right
-        -0.5, -0.5, 0.0,       0.0, 0.0, 1.0,  # bottom left
-        -0.5,  0.5, 0.0,       1.0, 1.0, 1.0  # top left
+        # Positions            # Colors          # Textures
+         0.5,  0.5, 0.0,       1.0, 0.0, 0.0,    1.0,   1.0,  # top right
+         0.5, -0.5, 0.0,       0.0, 1.0, 0.0,    1.0,  -1.0,  # bottom right
+        -0.5, -0.5, 0.0,       0.0, 0.0, 1.0,    -1.0, -1.0,  # bottom left
+        -0.5,  0.5, 0.0,       1.0, 1.0, 1.0,    -1.0,  1.0   # top left
 ], dtype=np.float32)
 
 indices = np.array([  # note that we start from 0!
@@ -83,13 +112,19 @@ glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
 ## position of the attrib array, must match the shader
 location = 0
-glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6*4, None) #3 * 4, 0)
+glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 8*4, None) #3 * 4, 0)
 glEnableVertexAttribArray(location)
 
 ## position of the attrib array, must match the shader
 location = 1
-glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6*4, ctypes.c_void_p(3*4)) #3 * 4, 0)
+glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 8*4, ctypes.c_void_p(3*4)) #3 * 4, 0)
 glEnableVertexAttribArray(location)
+
+## position of the attrib array, must match the shader
+location = 3
+glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 8*4, ctypes.c_void_p(6*4)) #3 * 4, 0)
+glEnableVertexAttribArray(location)
+
 
 # note that this is allowed, the call to glVertexAttribPointer registered VBO as the
 # vertex attribute's bound vertex buffer object so afterwards we can safely unbind
@@ -102,6 +137,7 @@ glEnableVertexAttribArray(location)
 # You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO,
 # but this rarely happens. Modifying other VAOs requires a call to glBindVertexArray anyways
 # so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+
 glBindVertexArray(0)
 
 # uncomment this call to draw in wireframe polygons.
