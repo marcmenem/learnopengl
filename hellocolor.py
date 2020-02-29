@@ -43,15 +43,8 @@ glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
 
 import myshader
-
-with open("hellocolor.vert") as shvS:
-    vertexShaderSource = ''.join(shvS.readlines())
-
-with open("hellocolor.frag") as shfS:
-    fragmentShaderSource = ''.join(shfS.readlines())
-
-shaderProgram = myshader.linkShaders(vertexShaderSource, fragmentShaderSource)
-
+shaders = myshader.shader( "hellocolor.vert", "hellocolor.frag")
+shaders.linkShaders()
 
 
 # set up vertex data (and buffer(s)) and configure vertex attributes
@@ -118,7 +111,8 @@ glBindVertexArray(0)
 # -----------
 glClearColor(0.9, 0.7, 0.7, 1.0)
 
-glUseProgram(shaderProgram)
+shaders.use()
+
 # no need to bind it every time, but we'll do so to keep things a bit more organized
 glBindVertexArray(VAO) #  seeing as we only have a single VAO there's
 while not glfw.window_should_close(window):
@@ -129,20 +123,17 @@ while not glfw.window_should_close(window):
     timeValue = glfw.get_time()*1.0
     greenValue = (math.sin(timeValue) / 2.0) + 0.5
     # print( greenValue )
-    vertexColorLocation = glGetUniformLocation(shaderProgram, "extraColor");
-    glUniform4f(vertexColorLocation, 0.0, greenValue, 0.0, 1.0);
+    shaders.setUniform4f( "extraColor", 0.0, greenValue, 0.0, 1.0)
 
     scaleUp = abs( greenValue )
-    scaleUpLocation = glGetUniformLocation(shaderProgram, "scaleUp");
-    glUniform1f(scaleUpLocation, scaleUp)
+    shaders.setUniform1f( "scaleUp", scaleUp)
 
     angle = timeValue
     rotation = np.array([
         math.cos(angle), - math.sin(angle),
         math.sin(angle),   math.cos(angle)
     ], dtype=np.float32)
-    rotationLocation = glGetUniformLocation(shaderProgram, "rotation");
-    glUniformMatrix2fv(rotationLocation, 1, False, rotation)
+    shaders.setUniformMatrix2fv( "rotation", rotation)
 
     # render
     glClear(GL_COLOR_BUFFER_BIT)

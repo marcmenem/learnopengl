@@ -1,45 +1,65 @@
 
 from OpenGL.GL import *
 
-def linkShaders(vertexShaderSource, fragmentShaderSource):
-    # build and compile our shader program
-    # ------------------------------------
-    # vertex shader
-    vertexShader = glCreateShader(GL_VERTEX_SHADER)
-    glShaderSource(vertexShader, [vertexShaderSource], None)
-    glCompileShader(vertexShader)
+class shader:
+    def __init__(self, vertSrc, fragSrc):
+        with open(vertSrc) as shvS:
+            self.vertexShaderSource = [ ''.join(shvS.readlines()) ]
+        with open(fragSrc) as shfS:
+            self.fragmentShaderSource = [ ''.join(shfS.readlines()) ]
 
-    # check for shader compile errors
-    success = glGetShaderiv(vertexShader, GL_COMPILE_STATUS)
-    if not success:
-        infoLog = glGetShaderInfoLog(vertexShader)
-        print( "ERROR::SHADER::VERTEX::COMPILATION_FAILED", infoLog)
+    def use(self):
+        glUseProgram(self.shaderProgram)
 
-    #  fragment shader
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
-    glShaderSource(fragmentShader, [fragmentShaderSource], None)
-    glCompileShader(fragmentShader)
+    def setUniform4f( self, location, x, y, z, w):
+        loc = glGetUniformLocation(self.shaderProgram, location)
+        glUniform4f(loc, x, y, z, w)
 
-    # check for shader compile errors
-    success = glGetShaderiv(fragmentShader, GL_COMPILE_STATUS)
-    if not success:
-        infoLog = glGetShaderInfoLog(fragmentShader)
-        print( "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", infoLog)
+    def setUniform1f( self, location, x):
+        loc = glGetUniformLocation(self.shaderProgram, location)
+        glUniform1f(loc, x)
 
-    # link shaders
-    shaderProgram = glCreateProgram()
-    glAttachShader(shaderProgram, vertexShader)
-    glAttachShader(shaderProgram, fragmentShader)
-    glLinkProgram(shaderProgram)
+    def setUniformMatrix2fv( self, location, mat):
+        loc = glGetUniformLocation(self.shaderProgram, location)
+        glUniformMatrix2fv(loc, 1, False, mat)
+
+    def linkShaders(self):
+        # build and compile our shader program
+        # ------------------------------------
+        # vertex shader
+        vertexShader = glCreateShader(GL_VERTEX_SHADER)
+        glShaderSource(vertexShader, self.vertexShaderSource, None)
+        glCompileShader(vertexShader)
+
+        # check for shader compile errors
+        success = glGetShaderiv(vertexShader, GL_COMPILE_STATUS)
+        if not success:
+            infoLog = glGetShaderInfoLog(vertexShader)
+            print( "ERROR::SHADER::VERTEX::COMPILATION_FAILED", infoLog)
+
+        #  fragment shader
+        fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
+        glShaderSource(fragmentShader, self.fragmentShaderSource, None)
+        glCompileShader(fragmentShader)
+
+        # check for shader compile errors
+        success = glGetShaderiv(fragmentShader, GL_COMPILE_STATUS)
+        if not success:
+            infoLog = glGetShaderInfoLog(fragmentShader)
+            print( "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", infoLog)
+
+        # link shaders
+        self.shaderProgram = glCreateProgram()
+        glAttachShader(self.shaderProgram, vertexShader)
+        glAttachShader(self.shaderProgram, fragmentShader)
+        glLinkProgram(self.shaderProgram)
 
 
-    # check for linking errors
-    success = glGetProgramiv(shaderProgram, GL_LINK_STATUS)
-    if not success:
-        infoLog = glGetProgramInfoLog(shaderProgram)
-        print( "ERROR::SHADER::PROGRAM::LINKING_FAILED", infoLog)
+        # check for linking errors
+        success = glGetProgramiv(self.shaderProgram, GL_LINK_STATUS)
+        if not success:
+            infoLog = glGetProgramInfoLog(self.shaderProgram)
+            print( "ERROR::SHADER::PROGRAM::LINKING_FAILED", infoLog)
 
-    glDeleteShader(vertexShader)
-    glDeleteShader(fragmentShader)
-
-    return shaderProgram
+        glDeleteShader(vertexShader)
+        glDeleteShader(fragmentShader)
