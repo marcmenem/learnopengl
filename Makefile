@@ -3,6 +3,9 @@ CFLAGS=
 LINK=-ldl -lglfw
 DEPS = hellomake.h
 
+## to check for tabs
+# cat -e -t -v Makefile
+
 %.o: %.cpp $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 

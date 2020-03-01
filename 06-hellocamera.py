@@ -9,6 +9,12 @@ import math
 
 import ctypes
 
+print("""Based on examples from the learnopengl tutorial
+
+use keys QWASDZ to move around and mouse to point camera.
+use key i to display info.
+
+""")
 
 def error_callback(errnum, descr):
     print("Called GLFW Error Callback", err, descr)
@@ -17,9 +23,14 @@ def framebuffer_size_callback(window, width, height):
     # make sure the viewport matches the new window dimensions; note that width and
     # height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height)
+    camera.setRatio( width/height )
 
 # process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 # ---------------------------------------------------------------------------------------------------------
+
+
+import mycamera
+camera = mycamera.Camera()
 
 ipressed = False
 
@@ -30,27 +41,26 @@ def processInput(window):
     if glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS:
         glfw.set_window_should_close(window, True)
 
-    cameraSpeed = 2.5 * deltaTime # adjust accordingly
     if glfw.get_key(window, glfw.KEY_W) == glfw.PRESS:
-        cameraPos += cameraSpeed * cameraFront
+        camera.processKeyboard( mycamera.FORWARD, deltaTime )
     if glfw.get_key(window, glfw.KEY_S) == glfw.PRESS:
-        cameraPos -= cameraSpeed * cameraFront
+        camera.processKeyboard( mycamera.BACKWARD, deltaTime )
 
     if glfw.get_key(window, glfw.KEY_A) == glfw.PRESS:
-        cameraPos -= glm.normalize(glm.cross(cameraFront, cameraUp)) * cameraSpeed
+        camera.processKeyboard( mycamera.LEFT, deltaTime )
     if glfw.get_key(window, glfw.KEY_D) == glfw.PRESS:
-        cameraPos += glm.normalize(glm.cross(cameraFront, cameraUp)) * cameraSpeed
+        camera.processKeyboard( mycamera.RIGHT, deltaTime )
 
     if glfw.get_key(window, glfw.KEY_Q) == glfw.PRESS:
-        cameraPos += cameraUp * cameraSpeed
+        camera.processKeyboard( mycamera.UP, deltaTime )
     if glfw.get_key(window, glfw.KEY_Z) == glfw.PRESS:
-        cameraPos -= cameraUp * cameraSpeed
+        camera.processKeyboard( mycamera.DOWN, deltaTime )
 
     if glfw.get_key(window, glfw.KEY_I) == glfw.PRESS:
         if not ipressed:
-            print( f"lastX: {lastX:3.2f}, lastY: {lastY:3.2f}, yaw: {yaw:3.2f}, pitch: {pitch:3.2f}, fov: {fov:3.2f}, fps: {1/deltaTime:3.1f}" )
-            print( "Position:", cameraPos )
-            print( "Front: ", cameraFront )
+            print( f"lastX: {lastX:3.2f}, lastY: {lastY:3.2f}")
+            print( f"fps: {1/deltaTime:3.1f}")
+            print( camera )
             ipressed = True
 
     if glfw.get_key(window, glfw.KEY_I) == glfw.RELEASE:
@@ -59,17 +69,10 @@ def processInput(window):
 
 lastX = 400
 lastY = 300
-
-yaw = -90.
-pitch = 0.0
-fov = 45.0
-fovmax = 90.0
-
-sensitivity = 0.05
 firstMouse = True
 
 def mouse_callback(window, xpos, ypos):
-    global lastX, lastY, yaw, pitch, cameraFront, firstMouse
+    global lastX, lastY, firstMouse
 
     if(firstMouse): #  initially set to true
         lastX = xpos
@@ -80,35 +83,10 @@ def mouse_callback(window, xpos, ypos):
     yoffset = lastY - ypos # reversed since y-coordinates range from bottom to top
     lastX = xpos
     lastY = ypos
-
-    xoffset *= sensitivity
-    yoffset *= sensitivity
-
-    yaw   += xoffset
-    pitch += yoffset
-
-    if pitch > 89.0:
-        pitch =  89.0
-    if pitch < -89.0:
-        pitch = -89.0
-
-    direction = glm.vec3(0.0, 0.0, 0.0)
-    direction.x = math.cos(glm.radians(yaw)) * math.cos(glm.radians(pitch))  #  Note that we convert the angle to radians first
-    direction.y = math.sin(glm.radians(pitch))
-    direction.z = math.sin(glm.radians(yaw)) * math.cos(glm.radians(pitch))
-
-    cameraFront =  glm.normalize(direction)
+    camera.processMouseMovement( xoffset, yoffset )
 
 def scroll_callback(window, xoffset, yoffset):
-    global fov
-    # print("scroll", xoffset, yoffset, fov)
-
-    if fov >= 1.0 and fov <= fovmax:
-        fov -= yoffset
-    elif fov <= 1.0:
-  	    fov = 1.0
-    elif fov >= fovmax:
-  	    fov = fovmax
+    camera.processMouseScroll(yoffset)
 
 
 width = 800
@@ -199,22 +177,6 @@ shaders.setUniform1i("ourTexture",  0); # set Textures
 # no need to bind it every time, but we'll do so to keep things a bit more organized
 glBindVertexArray(VAO) #  seeing as we only have a single VAO there's
 
-## Gram–Schmidt process
-# cameraPos = glm.vec3(0.0, 0.0, 3.0)
-# cameraTarget = glm.vec3(0.0, 0.0, 0.0)
-# cameraDirection = glm.normalize(cameraPos - cameraTarget)
-#
-# up = glm::vec3(0.0, 1.0, 0.0)
-# cameraRight = glm.normalize(glm.cross(up, cameraDirection))
-# cameraUp = glm.cross(cameraDirection, cameraRight)
-#
-# view = glm.lookAt(cameraPos, cameraTarget, up)
-
-cameraPos   = glm.vec3(0.0, 0.0,  3.0)
-cameraFront = glm.vec3(0.0, 0.0, -1.0)
-cameraUp    = glm.vec3(0.0, 1.0,  0.0)
-
-
 
 deltaTime = 0.0
 lastFrame = 0.0
@@ -229,22 +191,18 @@ while not glfw.window_should_close(window):
     deltaTime = currentFrame - lastFrame
     lastFrame = currentFrame
 
-    # print(1.0/deltaTime)
-
-    projection = glm.perspective( glm.radians(fov), 800.0 / 600.0, 0.1, 100.0)
-    # glm.ortho(0.0, 800.0, 0.0, 600.0, 0.1, 100.0)
-
     # render
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    # glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
-
 
     # radius = 10.0
     # camX = math.sin(timeValue) * radius
     # camZ = math.cos(timeValue) * radius
-    #
     # view = glm.lookAt(glm.vec3(camX, 0.0, camZ), glm.vec3(0.0, 0.0, 0.0), glm.vec3(0.0, 1.0, 0.0))
-    view = glm.lookAt(cameraPos, cameraPos + cameraFront, cameraUp)
+    #
+    projection = camera.getProjectionMatrix()
+    # glm.ortho(0.0, 800.0, 0.0, 600.0, 0.1, 100.0)
+
+    view = camera.getViewMatrix()
 
     shaders.setUniformMatrix4fv("view",  glm.value_ptr( view ))
     shaders.setUniformMatrix4fv("projection",  glm.value_ptr( projection ))
@@ -256,6 +214,7 @@ while not glfw.window_should_close(window):
         angle = 20.0 * i
         model = glm.rotate(model, glm.radians(angle), glm.vec3(1.0, 0.3, 0.5));
         shaders.setUniformMatrix4fv("model",  glm.value_ptr( model ))
+        # glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
         glDrawArrays(GL_TRIANGLES, 0, 36)
 
     # glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
