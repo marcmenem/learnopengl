@@ -9,6 +9,10 @@ import math
 
 import ctypes
 
+
+def error_callback(errnum, descr):
+    print("Called GLFW Error Callback", err, descr)
+
 def framebuffer_size_callback(window, width, height):
     # make sure the viewport matches the new window dimensions; note that width and
     # height will be significantly larger than specified on retina displays.
@@ -17,23 +21,14 @@ def framebuffer_size_callback(window, width, height):
 # process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 # ---------------------------------------------------------------------------------------------------------
 
-# rotate = True
-# rpressed = False
+ipressed = False
 
 def processInput(window):
     # global rotate, rpressed
-    global cameraPos, cameraSpeed, cameraFront
+    global cameraPos, cameraFront, ipressed
 
     if glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS:
         glfw.set_window_should_close(window, True)
-
-    # if glfw.get_key(window, glfw.KEY_R) == glfw.PRESS:
-    #     rpressed = True
-    #
-    # if rpressed and glfw.get_key(window, glfw.KEY_R) == glfw.RELEASE:
-    #     rpressed = False
-    #     rotate = not rotate
-    #     # print("rotate: ", rotate)
 
     cameraSpeed = 2.5 * deltaTime # adjust accordingly
     if glfw.get_key(window, glfw.KEY_W) == glfw.PRESS:
@@ -50,6 +45,16 @@ def processInput(window):
         cameraPos += cameraUp * cameraSpeed
     if glfw.get_key(window, glfw.KEY_Z) == glfw.PRESS:
         cameraPos -= cameraUp * cameraSpeed
+
+    if glfw.get_key(window, glfw.KEY_I) == glfw.PRESS:
+        if not ipressed:
+            print( f"lastX: {lastX:3.2f}, lastY: {lastY:3.2f}, yaw: {yaw:3.2f}, pitch: {pitch:3.2f}, fov: {fov:3.2f}, fps: {1/deltaTime:3.1f}" )
+            print( "Position:", cameraPos )
+            print( "Front: ", cameraFront )
+            ipressed = True
+
+    if glfw.get_key(window, glfw.KEY_I) == glfw.RELEASE:
+        ipressed = False
 
 
 lastX = 400
@@ -99,7 +104,6 @@ def scroll_callback(window, xoffset, yoffset):
     # print("scroll", xoffset, yoffset, fov)
 
     if fov >= 1.0 and fov <= fovmax:
-        print( ':)' )
         fov -= yoffset
     elif fov <= 1.0:
   	    fov = 1.0
@@ -127,9 +131,11 @@ if not window:
 glfw.make_context_current(window)
 glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
-glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+# glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 glfw.set_cursor_pos_callback(window, mouse_callback)
 glfw.set_scroll_callback(window, scroll_callback)
+
+glfw.set_error_callback(error_callback);
 
 ## Load, compile, link shaders
 import myshader

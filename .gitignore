@@ -2,8 +2,10 @@
 *.pyc
 hellotriangle
 hellotexture
+hellocamera
 .hg
 .hgignore
 Hello Triangle.ipynb
 .ipynb_checkpoints
 tags
+*.o
