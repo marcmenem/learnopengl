@@ -17,22 +17,94 @@ def framebuffer_size_callback(window, width, height):
 # process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 # ---------------------------------------------------------------------------------------------------------
 
-rotate = True
-rpressed = False
+# rotate = True
+# rpressed = False
 
 def processInput(window):
-    global rotate, rpressed
+    # global rotate, rpressed
+    global cameraPos, cameraSpeed, cameraFront
 
     if glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS:
         glfw.set_window_should_close(window, True)
 
-    if glfw.get_key(window, glfw.KEY_R) == glfw.PRESS:
-        rpressed = True
+    # if glfw.get_key(window, glfw.KEY_R) == glfw.PRESS:
+    #     rpressed = True
+    #
+    # if rpressed and glfw.get_key(window, glfw.KEY_R) == glfw.RELEASE:
+    #     rpressed = False
+    #     rotate = not rotate
+    #     # print("rotate: ", rotate)
 
-    if rpressed and glfw.get_key(window, glfw.KEY_R) == glfw.RELEASE:
-        rpressed = False
-        rotate = not rotate
-        # print("rotate: ", rotate)
+    cameraSpeed = 2.5 * deltaTime # adjust accordingly
+    if glfw.get_key(window, glfw.KEY_W) == glfw.PRESS:
+        cameraPos += cameraSpeed * cameraFront
+    if glfw.get_key(window, glfw.KEY_S) == glfw.PRESS:
+        cameraPos -= cameraSpeed * cameraFront
+
+    if glfw.get_key(window, glfw.KEY_A) == glfw.PRESS:
+        cameraPos -= glm.normalize(glm.cross(cameraFront, cameraUp)) * cameraSpeed
+    if glfw.get_key(window, glfw.KEY_D) == glfw.PRESS:
+        cameraPos += glm.normalize(glm.cross(cameraFront, cameraUp)) * cameraSpeed
+
+    if glfw.get_key(window, glfw.KEY_Q) == glfw.PRESS:
+        cameraPos += cameraUp * cameraSpeed
+    if glfw.get_key(window, glfw.KEY_Z) == glfw.PRESS:
+        cameraPos -= cameraUp * cameraSpeed
+
+
+lastX = 400
+lastY = 300
+
+yaw = -90.
+pitch = 0.0
+fov = 45.0
+fovmax = 90.0
+
+sensitivity = 0.05
+firstMouse = True
+
+def mouse_callback(window, xpos, ypos):
+    global lastX, lastY, yaw, pitch, cameraFront, firstMouse
+
+    if(firstMouse): #  initially set to true
+        lastX = xpos
+        lastY = ypos
+        firstMouse = False
+
+    xoffset = xpos - lastX
+    yoffset = lastY - ypos # reversed since y-coordinates range from bottom to top
+    lastX = xpos
+    lastY = ypos
+
+    xoffset *= sensitivity
+    yoffset *= sensitivity
+
+    yaw   += xoffset
+    pitch += yoffset
+
+    if pitch > 89.0:
+        pitch =  89.0
+    if pitch < -89.0:
+        pitch = -89.0
+
+    direction = glm.vec3(0.0, 0.0, 0.0)
+    direction.x = math.cos(glm.radians(yaw)) * math.cos(glm.radians(pitch))  #  Note that we convert the angle to radians first
+    direction.y = math.sin(glm.radians(pitch))
+    direction.z = math.sin(glm.radians(yaw)) * math.cos(glm.radians(pitch))
+
+    cameraFront =  glm.normalize(direction)
+
+def scroll_callback(window, xoffset, yoffset):
+    global fov
+    # print("scroll", xoffset, yoffset, fov)
+
+    if fov >= 1.0 and fov <= fovmax:
+        print( ':)' )
+        fov -= yoffset
+    elif fov <= 1.0:
+  	    fov = 1.0
+    elif fov >= fovmax:
+  	    fov = fovmax
 
 
 width = 800
@@ -55,6 +127,9 @@ if not window:
 glfw.make_context_current(window)
 glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
+glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+glfw.set_cursor_pos_callback(window, mouse_callback)
+glfw.set_scroll_callback(window, scroll_callback)
 
 ## Load, compile, link shaders
 import myshader
@@ -118,15 +193,25 @@ shaders.setUniform1i("ourTexture",  0); # set Textures
 # no need to bind it every time, but we'll do so to keep things a bit more organized
 glBindVertexArray(VAO) #  seeing as we only have a single VAO there's
 
+## Gram–Schmidt process
+# cameraPos = glm.vec3(0.0, 0.0, 3.0)
+# cameraTarget = glm.vec3(0.0, 0.0, 0.0)
+# cameraDirection = glm.normalize(cameraPos - cameraTarget)
+#
+# up = glm::vec3(0.0, 1.0, 0.0)
+# cameraRight = glm.normalize(glm.cross(up, cameraDirection))
+# cameraUp = glm.cross(cameraDirection, cameraRight)
+#
+# view = glm.lookAt(cameraPos, cameraTarget, up)
 
-# cameraPos = glm.vec3(0.0, 0.0, 3.0);  
+cameraPos   = glm.vec3(0.0, 0.0,  3.0)
+cameraFront = glm.vec3(0.0, 0.0, -1.0)
+cameraUp    = glm.vec3(0.0, 1.0,  0.0)
 
 
 
-# note that we're translating the scene in the reverse direction of where we want to move
-view = glm.mat4(1.0)
-view = glm.translate(view, glm.vec3(0.0, 0.0, -3.0))
-
+deltaTime = 0.0
+lastFrame = 0.0
 
 glEnable(GL_DEPTH_TEST)
 
@@ -134,17 +219,29 @@ while not glfw.window_should_close(window):
     # input
     processInput(window)
 
-    timeValue = glfw.get_time()*1.0
+    currentFrame = glfw.get_time()*1.0
+    deltaTime = currentFrame - lastFrame
+    lastFrame = currentFrame
 
-    projection = glm.perspective( glm.radians(45.0), 800.0 / 600.0, 0.1, 100.0)
+    # print(1.0/deltaTime)
+
+    projection = glm.perspective( glm.radians(fov), 800.0 / 600.0, 0.1, 100.0)
     # glm.ortho(0.0, 800.0, 0.0, 600.0, 0.1, 100.0)
-
-    shaders.setUniformMatrix4fv("view",  glm.value_ptr( view ))
-    shaders.setUniformMatrix4fv("projection",  glm.value_ptr( projection ))
 
     # render
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     # glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
+
+
+    # radius = 10.0
+    # camX = math.sin(timeValue) * radius
+    # camZ = math.cos(timeValue) * radius
+    #
+    # view = glm.lookAt(glm.vec3(camX, 0.0, camZ), glm.vec3(0.0, 0.0, 0.0), glm.vec3(0.0, 1.0, 0.0))
+    view = glm.lookAt(cameraPos, cameraPos + cameraFront, cameraUp)
+
+    shaders.setUniformMatrix4fv("view",  glm.value_ptr( view ))
+    shaders.setUniformMatrix4fv("projection",  glm.value_ptr( projection ))
 
     for i in range(10):
         model = glm.mat4(1.0)
