@@ -66,6 +66,25 @@ def processInput(window):
     if glfw.get_key(window, glfw.KEY_I) == glfw.RELEASE:
         ipressed = False
 
+    camera.step(deltaTime)
+
+def mousebutton_callback( window, button, action, mods ):
+    # mouse_pos = glfw.get_cursor_pos(window)
+    # glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_HIDDEN)
+    # glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_NORMAL)
+    if action == glfw.PRESS and button == glfw.MOUSE_BUTTON_1:
+        camera.move( mycamera.FORWARD )
+    if action == glfw.RELEASE and button == glfw.MOUSE_BUTTON_1:
+        camera.move( None )
+
+    if action == glfw.PRESS and button == glfw.MOUSE_BUTTON_2:
+        camera.move( mycamera.BACKWARD )
+    if action == glfw.RELEASE and button == glfw.MOUSE_BUTTON_2:
+        camera.move( None )
+
+        #     track_mouse = None
+
+
 
 lastX = 400
 lastY = 300
@@ -109,9 +128,10 @@ if not window:
 glfw.make_context_current(window)
 glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
-# glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 glfw.set_cursor_pos_callback(window, mouse_callback)
 glfw.set_scroll_callback(window, scroll_callback)
+glfw.set_mouse_button_callback(window, mousebutton_callback)
 
 glfw.set_error_callback(error_callback);
 

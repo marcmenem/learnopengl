@@ -5,7 +5,7 @@ import math
 
 YAW         = -90.0
 PITCH       =  0.0
-SPEED       =  2.5
+SPEED       =  5.0
 SENSITIVITY =  0.1
 FOV         =  45.0
 FOVMAX      =  90.0
@@ -36,6 +36,7 @@ class Camera:
         self.mouseSensitivity = mouseSensitivity
         self.fov = fov
         self.ratio = ratio ## aspect ration of the perspective
+        self.curMove = None
 
         self._updateCameraVectors()
 
@@ -59,10 +60,18 @@ Front:    {self.front}"""
         # self.front = glm.normalize(self.front)
         # print(self.front)
 
-        # Also re-calculate the Right and Up vector ???
+        # Also re-calculate the Right and Up vector 
         self.right = glm.normalize(glm.cross(self.front, self.worldUp))
         # Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         self.up    = glm.normalize(glm.cross(self.right, self.front))
+
+
+    def move( self, dir ):
+        self.curMove = dir
+
+    def step( self, deltaTime ):
+        if self.curMove:
+            self.processKeyboard( self.curMove, deltaTime )
 
     def getViewMatrix( self ):
         return glm.lookAt( self.position, self.position + self.front, self.up )
