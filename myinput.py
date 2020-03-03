@@ -12,6 +12,12 @@ class InputManager:
         self.lastY = 300
         self.firstMouse = True
 
+        self.ambiant = True
+        self.diffuse = True
+        self.specular = True
+        
+        self.texture = True
+
     def processInput(self, window, deltaTime):
 
         if glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS:
@@ -33,14 +39,54 @@ class InputManager:
             self.camera.processKeyboard( mycamera.DOWN, deltaTime )
 
         if glfw.get_key(window, glfw.KEY_I) == glfw.PRESS:
-            if not ipressed:
-                print( f"lastX: {lastX:3.2f}, lastY: {lastY:3.2f}")
+            if not self.ipressed:
+                print( f"lastX: {self.lastX:3.2f}, lastY: {self.lastY:3.2f}")
                 print( f"fps: {1/deltaTime:3.1f}")
+                print( f"ambiant: {self.ambiant}, diffuse: {self.diffuse}, specular: {self.specular}")
+                print( f"Texture: {self.texture}")
                 print( self.camera )
-                ipressed = True
+                self.ipressed = True
+
+        if glfw.get_key(window, glfw.KEY_R) == glfw.PRESS:
+            if not self.rpressed:
+                self.ambiant = not self.ambiant
+                print("Ambiant:", self.ambiant)
+                self.rpressed = True
+
+        if glfw.get_key(window, glfw.KEY_T) == glfw.PRESS:
+            if not self.tpressed:
+                self.diffuse = not self.diffuse
+                print("Diffuse:", self.diffuse)
+                self.tpressed = True
+
+        if glfw.get_key(window, glfw.KEY_Y) == glfw.PRESS:
+            if not self.ypressed:
+                self.specular = not self.specular
+                print("Specular:", self.specular)
+                self.ypressed = True
+
+        if glfw.get_key(window, glfw.KEY_U) == glfw.PRESS:
+            if not self.upressed:
+                self.texture = not self.texture
+                print("Texture:", self.texture)
+                self.upressed = True
 
         if glfw.get_key(window, glfw.KEY_I) == glfw.RELEASE:
             self.ipressed = False
+
+        if glfw.get_key(window, glfw.KEY_R) == glfw.RELEASE:
+            self.rpressed = False
+
+        if glfw.get_key(window, glfw.KEY_T) == glfw.RELEASE:
+            self.tpressed = False
+
+        if glfw.get_key(window, glfw.KEY_Y) == glfw.RELEASE:
+            self.ypressed = False
+
+        if glfw.get_key(window, glfw.KEY_U) == glfw.RELEASE:
+            self.upressed = False
+
+
 
         self.camera.step(deltaTime)
 
