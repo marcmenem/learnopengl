@@ -15,7 +15,7 @@ class InputManager:
         self.ambiant = True
         self.diffuse = True
         self.specular = True
-        
+
         self.texture = True
 
     def processInput(self, window, deltaTime):

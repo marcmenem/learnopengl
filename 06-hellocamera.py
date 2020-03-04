@@ -179,7 +179,7 @@ glEnableVertexAttribArray(location)
 
 ## position of the attrib array, must match the shader
 location = 1
-glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 5*4, ctypes.c_void_p(3*4)) #3 * 4, 0)
+glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, 5*4, ctypes.c_void_p(3*4)) #3 * 4, 0)
 glEnableVertexAttribArray(location)
 glBindBuffer(GL_ARRAY_BUFFER, 0)
 glBindVertexArray(0)

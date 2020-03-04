@@ -57,7 +57,7 @@ glfw.set_mouse_button_callback(window, inputMgr.get_mousebutton_callback())
 glfw.set_error_callback(inputMgr.get_error_callback());
 
 ## Load, compile, link shaders
-shaders = myshader.shader( "basiclight-texture.vert", "basiclight-onoff.frag")
+shaders = myshader.shader( "basiclight-texture.vert", "texturedobj.frag")
 shaders.linkShaders()
 
 lightshader = myshader.shader( "hellolightingcol.vert", "hellolight.frag")
@@ -65,7 +65,8 @@ lightshader.linkShaders()
 
 # ## Textures
 t1 = mytexture.texture('equirectangular.jpg', GL_TEXTURE0)
-# t2 = mytexture.texture('awesomeface.png', GL_TEXTURE1)
+t2 = mytexture.texture('container2.png', GL_TEXTURE1)
+t3 = mytexture.texture('container2_specular.png', GL_TEXTURE2)
 
 ## Scene
 import mycube
@@ -76,7 +77,7 @@ myspherevertices = mysphere.sphere_vertices(30)
 nbspheretriangles = int(len(myspherevertices)/5*3)
 
 cubePositions = [
-  glm.vec3( 0.0,  0.0,  0.0),
+ # glm.vec3( 0.0,  0.0,  0.0),
   glm.vec3( 2.0,  5.0, -15.0),
   glm.vec3(-1.5, -2.2, -2.5),
   glm.vec3(-3.8, -2.0, -12.3),
@@ -122,7 +123,7 @@ glBindVertexArray(lightVAO)
 # we only need to bind to the VBO, the container's VBO's data already contains the data.
 # glBindBuffer(GL_ARRAY_BUFFER, VBO)
 # set the vertex attributes (only position data for our lamp)
-location = 0
+location = 0 # coords
 glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 8*4, None)
 glEnableVertexAttribArray(location);
 
@@ -135,6 +136,10 @@ glEnableVertexAttribArray(location)
 location = 2 # texture
 glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, 8*4, ctypes.c_void_p(3*4)) #3 * 4, 0)
 glEnableVertexAttribArray(location)
+
+glBindBuffer(GL_ARRAY_BUFFER, 0)
+glBindVertexArray(0)
+
 # uncomment this call to draw in wireframe polygons.
 # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
@@ -170,13 +175,11 @@ while not glfw.window_should_close(window):
 
     view = camera.getViewMatrix()
 
-    lightPos = glm.vec3( 5.0*math.cos(currentFrameTime),
-                         5.0*math.sin(currentFrameTime), 0.0 )
+    lightPos = glm.vec3( 2.5*math.cos(currentFrameTime),
+                         2.5*math.sin(currentFrameTime), 0.0 )
 
 
     shaders.use();
-    shaders.setUniform3f("lightColor",  1.0, 1.0, 1.0)
-    shaders.setVec3("lightPos", lightPos)
     shaders.setVec3("viewPos", camera.position)
 
     shaders.setBoolean("ambiantOn", inputMgr.ambiant)
@@ -184,29 +187,55 @@ while not glfw.window_should_close(window):
     shaders.setBoolean("specularOn", inputMgr.specular)
     shaders.setBoolean("textureOn", inputMgr.texture)
 
+    shaders.setVec3("lightPos", lightPos)
+    # shaders.setUniform3f("material.ambient", 1.0, 0.5, 0.31)
+    # shaders.setUniform3f("material.diffuse", 1.0, 0.5, 0.31)
+    shaders.setUniform3f("material.specular", 0.75, 0.75, 0.75)
+    shaders.setUniform1i("material.useSpecularMap", False)
+    shaders.setUniform1f("material.shininess", 32.0);
+
+    lightColor = glm.vec3()
+    lightColor.x = 1.0 #math.sin(currentFrameTime * 2.0)
+    lightColor.y = 1.0 #math.sin(currentFrameTime * 0.7)
+    lightColor.z = 1.0 #math.sin(currentFrameTime * 1.3)
+
+    diffuseColor = lightColor   * glm.vec3(0.5)
+    ambientColor = diffuseColor * glm.vec3(0.5)
+
+    shaders.setVec3("light.ambient", ambientColor);
+    shaders.setVec3("light.diffuse", diffuseColor);
+    shaders.setUniform3f("light.specular", 1.0, 1.0, 1.0)
+
     shaders.setUniformMatrix4fv("view",  glm.value_ptr( view ))
     shaders.setUniformMatrix4fv("projection",  glm.value_ptr( projection ))
+
+    shaders.setUniform1i("material.diffuse",  0)
 
     glBindVertexArray(VAO)
 
     for i in range(len(cubePositions)):
         model = glm.mat4(1.0)
         model = glm.translate(model, cubePositions[i]);
-        model = glm.rotate(model, currentFrameTime * glm.radians(-55.0), glm.vec3(0.0, 0.0, 1.0))
+        #    model = glm.rotate(model, timeValue * glm.radians(-55.0), glm.vec3(1.0, 0.5, 0.0))
         #angle = 20.0 * i
         #model = glm.rotate(model, glm.radians(angle), glm.vec3(1.0, 0.3, 0.5));
         shaders.setUniformMatrix4fv("model",  glm.value_ptr( model ))
-        shaders.setUniform3f("objectColor", i/len(cubePositions), 0.5, 0.31)
         # glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
         glDrawArrays(GL_TRIANGLES, 0, nbspheretriangles)
 
 
     glBindVertexArray(lightVAO)
+    model = glm.mat4(1.0)
+    shaders.setUniformMatrix4fv("model",  glm.value_ptr( model ))
+    shaders.setUniform1i("material.diffuse", 1)
+    shaders.setUniform1i("material.specularmap", 2)
+    shaders.setUniform1i("material.useSpecularMap", True)
+
     glDrawArrays(GL_TRIANGLES, 0, 36)
 
 
     lightshader.use();
-    lightshader.setUniform3f("lightColor",  1.0, 1.0, 1.0)
+    lightshader.setVec3("lightColor",  lightColor)
     lightshader.setUniformMatrix4fv("view",  glm.value_ptr( view ))
     lightshader.setUniformMatrix4fv("projection",  glm.value_ptr( projection ))
     model = glm.translate( glm.mat4(1.0), lightPos)

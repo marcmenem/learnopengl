@@ -10,7 +10,6 @@ uniform mat4 model;
 
 out vec3 Normal;
 out vec3 FragPos;
-
 out vec2 textureCoord;
 
 void main(){

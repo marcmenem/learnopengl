@@ -14,7 +14,7 @@ uniform bool textureOn;
 
 in vec3 Normal;
 in vec3 FragPos;
-out vec2 textureCoord;
+in vec2 textureCoord;
 
 uniform sampler2D sphereTexture;
 
@@ -23,7 +23,7 @@ void main(){
 
     vec3 ambient;
     if( ambiantOn ){
-      float ambientStrength = 0.1;
+      float ambientStrength = 0.3;
       ambient = ambientStrength * lightColor;
     } else {
       ambient = vec3(0,0,0);
@@ -54,8 +54,8 @@ void main(){
 
     vec4 objCol;
     if (textureOn){
-       //objCol = texture(sphereTexture, textureCoord);
-       objCol = vec4(objectColor, 1.0);
+      // objCol = texture(sphereTexture, vec2(0.1,0.5));
+      objCol = texture(sphereTexture, textureCoord);
     } else {
        objCol = vec4(objectColor, 1.0);
     }
