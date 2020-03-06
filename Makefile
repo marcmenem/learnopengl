@@ -22,3 +22,6 @@ hellotexture: glad.o hellotexture.o
 
 hellocamera: glad.o hellocamera.o
 	$(CC) -o hellocamera hellocamera.o glad.o $(LINK)
+
+lightcaster: glad.o lightcaster.o
+			$(CC) -o lightcaster lightcaster.o glad.o $(LINK)
