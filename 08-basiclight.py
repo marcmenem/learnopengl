@@ -54,10 +54,10 @@ glfw.set_mouse_button_callback(window, inputMgr.get_mousebutton_callback())
 glfw.set_error_callback(inputMgr.get_error_callback());
 
 ## Load, compile, link shaders
-shaders = myshader.shader( "basiclight.vert", "basiclight.frag")
+shaders = myshader.shader( "shaders/basiclight.vert", "shaders/basiclight.frag")
 shaders.linkShaders()
 
-lightshader = myshader.shader( "hellolightingcol.vert", "hellolight.frag")
+lightshader = myshader.shader( "shaders/hellolightingcol.vert", "shaders/hellolight.frag")
 lightshader.linkShaders()
 
 # ## Textures

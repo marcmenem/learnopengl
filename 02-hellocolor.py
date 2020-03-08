@@ -43,7 +43,7 @@ glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
 ## Load, compile, link shaders
 import myshader
-shaders = myshader.shader( "hellocolor.vert", "hellocolor.frag")
+shaders = myshader.shader( "shaders/hellocolor.vert", "shaders/hellocolor.frag")
 shaders.linkShaders()
 
 

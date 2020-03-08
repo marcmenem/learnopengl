@@ -57,14 +57,14 @@ glfw.set_mouse_button_callback(window, inputMgr.get_mousebutton_callback())
 glfw.set_error_callback(inputMgr.get_error_callback());
 
 ## Load, compile, link shaders
-shaders = myshader.shader( "basiclight-texture.vert", "material.frag")
+shaders = myshader.shader( "shaders/basiclight-texture.vert", "shaders/material.frag")
 shaders.linkShaders()
 
-lightshader = myshader.shader( "hellolightingcol.vert", "hellolight.frag")
+lightshader = myshader.shader( "shaders/hellolightingcol.vert", "shaders/hellolight.frag")
 lightshader.linkShaders()
 
 # ## Textures
-t1 = mytexture.texture('equirectangular.jpg', GL_TEXTURE0)
+t1 = mytexture.texture('resources/equirectangular.jpg', GL_TEXTURE0)
 # t2 = mytexture.texture('awesomeface.png', GL_TEXTURE1)
 
 ## Scene

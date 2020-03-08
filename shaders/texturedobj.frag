@@ -21,7 +21,6 @@ uniform Material material;
 
 out vec4 FragColor;
 
-uniform vec3 lightPos;
 uniform vec3 viewPos;
 
 uniform bool ambiantOn;
@@ -46,7 +45,7 @@ void main(){
     }
 
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(lightPos - FragPos);
+    vec3 lightDir = normalize(light.position - FragPos);
 
 
     // diffuse
@@ -75,15 +74,6 @@ void main(){
     } else {
       specular = vec3(0.0,0.0,0.0);
     }
-
-    //vec3 objCol;
-    // if (textureOn){
-    //   objCol = texture(sphereTexture, vec2(0.1,0.5)).rgb;
-    //   // objCol = texture(sphereTexture, textureCoord);
-    // } else {
-      //objCol = vec3(1.0, 1.0, 1.0);
-    // }
-
 
     vec3 result = (ambient + diffuse + specular); // * objCol.rgb;
     FragColor = vec4(result, 1.0);

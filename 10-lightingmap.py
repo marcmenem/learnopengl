@@ -57,16 +57,16 @@ glfw.set_mouse_button_callback(window, inputMgr.get_mousebutton_callback())
 glfw.set_error_callback(inputMgr.get_error_callback());
 
 ## Load, compile, link shaders
-shaders = myshader.shader( "basiclight-texture.vert", "texturedobj.frag")
+shaders = myshader.shader( "shaders/basiclight-texture.vert", "shaders/texturedobj.frag")
 shaders.linkShaders()
 
-lightshader = myshader.shader( "hellolightingcol.vert", "hellolight.frag")
+lightshader = myshader.shader( "shaders/hellolightingcol.vert", "shaders/hellolight.frag")
 lightshader.linkShaders()
 
 # ## Textures
-t1 = mytexture.texture('equirectangular.jpg', GL_TEXTURE0)
-t2 = mytexture.texture('container2.png', GL_TEXTURE1)
-t3 = mytexture.texture('container2_specular.png', GL_TEXTURE2)
+t1 = mytexture.texture('resources/equirectangular.jpg', GL_TEXTURE0)
+t2 = mytexture.texture('resources/container2.png', GL_TEXTURE1)
+t3 = mytexture.texture('resources/container2_specular.png', GL_TEXTURE2)
 
 ## Scene
 import mycube
@@ -187,7 +187,7 @@ while not glfw.window_should_close(window):
     shaders.setBoolean("specularOn", inputMgr.specular)
     shaders.setBoolean("textureOn", inputMgr.texture)
 
-    shaders.setVec3("lightPos", lightPos)
+    shaders.setVec3("light.position", lightPos)
     # shaders.setUniform3f("material.ambient", 1.0, 0.5, 0.31)
     # shaders.setUniform3f("material.diffuse", 1.0, 0.5, 0.31)
     shaders.setUniform3f("material.specular", 0.75, 0.75, 0.75)

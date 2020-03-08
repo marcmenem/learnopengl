@@ -57,12 +57,12 @@ glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
 ## Load, compile, link shaders
 import myshader
-shaders = myshader.shader( "hellotransform.vert", "hellotexture.frag")
+shaders = myshader.shader( "shaders/hellotransform.vert", "shaders/hellotexture.frag")
 shaders.linkShaders()
 
 ## Textures
 import PIL.Image
-im = PIL.Image.open('wall.jpg')
+im = PIL.Image.open('resources/wall.jpg')
 
 imw, imh = im.size
 imd = im.convert('RGB').transpose(PIL.Image.FLIP_TOP_BOTTOM).tobytes()
@@ -94,7 +94,7 @@ glGenerateMipmap(GL_TEXTURE_2D)
 
 
 
-im = PIL.Image.open('awesomeface.png')
+im = PIL.Image.open('resources/awesomeface.png')
 
 imw, imh = im.size
 imd = im.convert('RGB').transpose(PIL.Image.FLIP_TOP_BOTTOM).tobytes()

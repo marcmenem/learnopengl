@@ -17,6 +17,11 @@ class InputManager:
         self.specular = True
 
         self.texture = True
+        self.directionalLight = False
+        self.attenuation = True
+        self.spotLight = False
+
+        self.freezelight = False
 
     def processInput(self, window, deltaTime):
 
@@ -43,7 +48,8 @@ class InputManager:
                 print( f"lastX: {self.lastX:3.2f}, lastY: {self.lastY:3.2f}")
                 print( f"fps: {1/deltaTime:3.1f}")
                 print( f"ambiant: {self.ambiant}, diffuse: {self.diffuse}, specular: {self.specular}")
-                print( f"Texture: {self.texture}")
+                print( f"Texture: {self.texture}, spotlight {self.spotLight}, freeze light {self.freezelight}")
+                print( f"Directional Light: {self.directionalLight}, Attenuation: {self.attenuation}")
                 print( self.camera )
                 self.ipressed = True
 
@@ -71,6 +77,30 @@ class InputManager:
                 print("Texture:", self.texture)
                 self.upressed = True
 
+        if glfw.get_key(window, glfw.KEY_O) == glfw.PRESS:
+            if not self.opressed:
+                self.directionalLight = not self.directionalLight
+                print("Directional Light:", self.directionalLight)
+                self.opressed = True
+
+        if glfw.get_key(window, glfw.KEY_P) == glfw.PRESS:
+            if not self.ppressed:
+                self.attenuation = not self.attenuation
+                print("Attenutation Light:", self.attenuation)
+                self.ppressed = True
+
+        if glfw.get_key(window, glfw.KEY_F) == glfw.PRESS:
+            if not self.fpressed:
+                self.freezelight = not self.freezelight
+                print("Freeze light:", self.freezelight)
+                self.fpressed = True
+
+        if glfw.get_key(window, glfw.KEY_G) == glfw.PRESS:
+            if not self.gpressed:
+                self.spotLight = not self.spotLight
+                print("Spotlight:", self.spotLight)
+                self.gpressed = True
+
         if glfw.get_key(window, glfw.KEY_I) == glfw.RELEASE:
             self.ipressed = False
 
@@ -85,6 +115,18 @@ class InputManager:
 
         if glfw.get_key(window, glfw.KEY_U) == glfw.RELEASE:
             self.upressed = False
+
+        if glfw.get_key(window, glfw.KEY_O) == glfw.RELEASE:
+            self.opressed = False
+
+        if glfw.get_key(window, glfw.KEY_P) == glfw.RELEASE:
+            self.ppressed = False
+
+        if glfw.get_key(window, glfw.KEY_F) == glfw.RELEASE:
+            self.fpressed = False
+
+        if glfw.get_key(window, glfw.KEY_G) == glfw.RELEASE:
+            self.gpressed = False
 
 
 

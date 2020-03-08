@@ -138,15 +138,15 @@ glfw.set_error_callback(error_callback);
 
 ## Load, compile, link shaders
 import myshader
-shaders = myshader.shader( "hellolightingcol.vert", "hellolightingcol.frag")
+shaders = myshader.shader( "shaders/hellolightingcol.vert", "shaders/hellolightingcol.frag")
 shaders.linkShaders()
 
-lightshader = myshader.shader( "hellolightingcol.vert", "hellolight.frag")
+lightshader = myshader.shader( "shaders/hellolightingcol.vert", "shaders/hellolight.frag")
 lightshader.linkShaders()
 
 # ## Textures
 import mytexture
-t1 = mytexture.texture('wall.jpg', GL_TEXTURE0)
+t1 = mytexture.texture('resources/wall.jpg', GL_TEXTURE0)
 # t2 = mytexture.texture('awesomeface.png', GL_TEXTURE1)
 
 ## Scene
